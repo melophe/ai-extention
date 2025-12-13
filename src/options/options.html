@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat - 設定</title>
+    <link rel="stylesheet" href="options.css">
+</head>
+
+<body>
+    <div class="options-container">
+        <header class="options-header">
+            <h1>
+                <span class="logo">✨</span>
+                AI Chat 設定
+            </h1>
+            <p class="subtitle">Gemini APIを使用したAIチャットアシスタントの設定</p>
+        </header>
+
+        <main class="options-content">
+            <!-- API Key Section -->
+            <section class="settings-section">
+                <h2>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4">
+                        </path>
+                    </svg>
+                    APIキー
+                </h2>
+
+                <div class="form-group">
+                    <label for="api-key">Gemini API キー</label>
+                    <div class="input-with-action">
+                        <input type="password" id="api-key" placeholder="AIza..." autocomplete="off" spellcheck="false">
+                        <button id="toggle-visibility" type="button" class="icon-button" title="表示/非表示">
+                            <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <svg id="eye-off-icon" class="hidden" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <path
+                                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                                </path>
+                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    <p class="help-text">
+                        APIキーは
+                        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Google AI
+                            Studio</a>
+                        から無料で取得できます。
+                    </p>
+                </div>
+            </section>
+
+            <!-- Model Selection Section -->
+            <section class="settings-section">
+                <h2>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                        <polyline points="2 17 12 22 22 17"></polyline>
+                        <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                    モデル設定
+                </h2>
+
+                <div class="form-group">
+                    <label for="model-select">使用するモデル</label>
+                    <select id="model-select">
+                        <option value="gemini-2.5-flash">Gemini 2.5 Flash (最新・推奨)</option>
+                        <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                        <option value="gemini-2.0-flash-001">Gemini 2.0 Flash (安定版)</option>
+                    </select>
+                </div>
+            </section>
+
+            <!-- System Prompt Section -->
+            <section class="settings-section">
+                <h2>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    システムプロンプト
+                </h2>
+
+                <div class="form-group">
+                    <label for="system-prompt">AIへの事前指示</label>
+                    <textarea id="system-prompt" rows="3" placeholder="例: 簡潔に、要点重視で回答してください。"></textarea>
+                    <p class="help-text">
+                        AIの回答スタイルをカスタマイズできます。空欄の場合はデフォルトが使用されます。
+                    </p>
+                </div>
+            </section>
+
+            <!-- Info Section -->
+            <section class="settings-section info-section">
+                <h2>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    プライバシーについて
+                </h2>
+
+                <div class="info-card">
+                    <ul class="privacy-list">
+                        <li><span class="check-icon">✓</span> APIキーはローカルに保存され、外部に送信されません</li>
+                        <li><span class="check-icon">✓</span> この拡張機能はWebページの内容を読み取りません</li>
+                        <li><span class="check-icon">✓</span> 会話履歴はセッションごとにクリアされます</li>
+                        <li><span class="check-icon">✓</span> 必要最小限の権限のみを使用しています</li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+
+        <!-- Actions -->
+        <footer class="options-footer">
+            <div class="button-group">
+                <button id="save-settings" class="button primary">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    保存
+                </button>
+                <button id="test-connection" class="button secondary">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    接続テスト
+                </button>
+            </div>
+
+            <div id="status-message" class="status-message hidden"></div>
+        </footer>
+    </div>
+
+    <script type="module" src="options.js"></script>
+</body>
+
+</html>
