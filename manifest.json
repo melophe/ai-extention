@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "AI Chat Assistant",
+  "version": "1.0.0",
+  "description": "ブラウザ常駐型AIチャットアシスタント - Gemini API連携",
+  
+  "permissions": [
+    "storage",
+    "sidePanel"
+  ],
+  
+  "icons": {
+    "16": "assets/icons/icon-16.png",
+    "32": "assets/icons/icon-32.png",
+    "48": "assets/icons/icon-48.png",
+    "128": "assets/icons/icon-128.png"
+  },
+  
+  "action": {
+    "default_icon": {
+      "16": "assets/icons/icon-16.png",
+      "32": "assets/icons/icon-32.png"
+    },
+    "default_title": "AI Chat"
+  },
+  
+  "side_panel": {
+    "default_path": "src/sidepanel/sidepanel.html"
+  },
+  
+  "background": {
+    "service_worker": "src/background/service-worker.js",
+    "type": "module"
+  },
+  
+  "options_ui": {
+    "page": "src/options/options.html",
+    "open_in_tab": true
+  },
+  
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  
+  "host_permissions": []
+}
