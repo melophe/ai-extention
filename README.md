@@ -5,8 +5,8 @@
 </p>
 
 <p align="center">
-  <strong>ブラウザ常駐型 AI チャット拡張機能</strong><br>
-  Gemini API を使用してブラウザ内で直接 AI と会話
+  <strong>Browser-resident AI Chat Extension</strong><br>
+  Chat with AI directly in your browser using the Gemini API
 </p>
 
 <p align="center">
@@ -18,112 +18,112 @@
 
 ---
 
-## ✨ 特徴
+## Features
 
-| 機能 | 説明 |
-|------|------|
-| **サイドパネル型 UI** | ブラウザの横に常駐、別タブ不要 |
-| **プライバシー重視** | Web ページの内容を一切読み取りません |
-| **ストリーミング応答** | AI の回答をリアルタイムで表示 |
-| **カスタムプロンプト** | システムプロンプトのカスタマイズ可能 |
-| **クロスブラウザ** | Chrome / Edge / Firefox 対応 |
+| Feature | Description |
+|---------|-------------|
+| **Side Panel UI** | Always accessible from the browser sidebar, no extra tabs needed |
+| **Privacy Focused** | Does not read any web page content |
+| **Streaming Response** | Displays AI responses in real-time |
+| **Custom Prompts** | Customize the system prompt to your needs |
+| **Cross-Browser** | Supports Chrome / Edge / Firefox |
 
 ---
 
-## 🚀 インストール
+## Installation
 
 ### Chrome / Edge
 
-1. `chrome://extensions` または `edge://extensions` を開く
-2. **開発者モード** を有効化
-3. **パッケージ化されていない拡張機能を読み込む** をクリック
-4. プロジェクトフォルダを選択
+1. Open `chrome://extensions` or `edge://extensions`
+2. Enable **Developer mode**
+3. Click **Load unpacked**
+4. Select the project folder
 
 ### Firefox
 
-1. `about:debugging` を開く
-2. **このFirefox** → **一時的なアドオンを読み込む**
-3. `dist/firefox/manifest.json` を選択
+1. Open `about:debugging`
+2. Click **This Firefox** > **Load Temporary Add-on**
+3. Select `dist/firefox/manifest.json`
 
-> **💡 ヒント**: ビルドスクリプトを使うと Chrome / Firefox 両方のパッケージが自動生成されます
-
----
-
-## ⚙️ セットアップ
-
-### 1. API キーの取得
-
-[Google AI Studio](https://aistudio.google.com/apikey) で API キーを取得
-
-### 2. 拡張機能の設定
-
-1. 拡張機能アイコンを右クリック → **オプション**
-2. API キーを入力して保存
-3. （任意）システムプロンプトをカスタマイズ
-
-### 3. 使い方
-
-- **Chrome / Edge**: ツールバーのアイコンをクリックでサイドパネルが開く
-- **Firefox**: ツールバーのアイコンをクリック、またはサイドバーから開く
-- **送信**: `Ctrl + Enter` または送信ボタン
+> **Tip**: Use the build script to automatically generate packages for both Chrome and Firefox.
 
 ---
 
-## 🛠️ 開発
+## Setup
 
-### ビルド
+### 1. Get an API Key
+
+Get your API key from [Google AI Studio](https://aistudio.google.com/apikey)
+
+### 2. Configure the Extension
+
+1. Right-click the extension icon > **Options**
+2. Enter your API key and save
+3. (Optional) Customize the system prompt
+
+### 3. Usage
+
+- **Chrome / Edge**: Click the toolbar icon to open the side panel
+- **Firefox**: Click the toolbar icon or open from the sidebar
+- **Send**: `Ctrl + Enter` or click the send button
+
+---
+
+## Development
+
+### Build
 
 ```bash
 node scripts/build.js
 ```
 
-出力先:
-- `dist/chrome/` - Chrome / Edge 用
-- `dist/firefox/` - Firefox 用
+Output:
+- `dist/chrome/` - For Chrome / Edge
+- `dist/firefox/` - For Firefox
 
-### ディレクトリ構成
+### Directory Structure
 
 ```
 ai-chat-extension/
-├── manifest.json            # Chrome / Edge 用
-├── manifest.firefox.json    # Firefox 用
+├── manifest.json            # For Chrome / Edge
+├── manifest.firefox.json    # For Firefox
 ├── scripts/
-│   └── build.js             # ビルドスクリプト
+│   └── build.js             # Build script
 ├── src/
-│   ├── background/          # バックグラウンドスクリプト
-│   ├── sidepanel/           # サイドパネル UI
-│   ├── options/             # オプションページ
-│   ├── lib/                 # API・ストレージ関連
-│   └── shared/              # 共有ユーティリティ
+│   ├── background/          # Background scripts
+│   ├── sidepanel/           # Side panel UI
+│   ├── options/             # Options page
+│   ├── lib/                 # API and storage modules
+│   └── shared/              # Shared utilities
 └── assets/
-    └── icons/               # アイコン画像
+    └── icons/               # Icon images
 ```
 
 ---
 
-## 🔒 権限とセキュリティ
+## Permissions and Security
 
-### 使用する権限
+### Permissions Used
 
-| 権限 | 用途 |
-|------|------|
-| `storage` | API キーと設定の保存 |
-| `sidePanel` | サイドパネル UI (Chrome/Edge) |
+| Permission | Purpose |
+|------------|---------|
+| `storage` | Store API key and settings |
+| `sidePanel` | Side panel UI (Chrome/Edge) |
 
-### 使用しない権限
+### Permissions Not Used
 
-- ページ読み取り権限
-- 閲覧履歴アクセス
-- タブ情報アクセス
+- Page content reading
+- Browsing history access
+- Tab information access
 
-### セキュリティ
+### Security
 
-- API キーはローカルストレージにのみ保存
-- 外部サーバーへの API キー送信なし
-- Content Script なし（Web ページに介入しない）
+- API key is stored only in local storage
+- No API key transmission to external servers
+- No Content Script (does not interfere with web pages)
 
 ---
 
-## 📄 ライセンス
+## License
 
 MIT License
