@@ -1,0 +1,17 @@
+{
+  "name": "ai-chat-extension",
+  "version": "1.0.0",
+  "description": "AI Chat Browser Extension with Gemini API",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "chrome-types": "^0.1.327"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

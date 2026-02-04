@@ -1,9 +1,16 @@
 // Gemini API Constants
+
 export const GEMINI_API_URL = 'https://generativelanguage.googleapis.com';
 
 export const DEFAULT_MODEL = 'gemini-2.5-flash';
 
-export const AVAILABLE_MODELS = [
+export interface ModelOption {
+    id: string;
+    name: string;
+    recommended: boolean;
+}
+
+export const AVAILABLE_MODELS: ModelOption[] = [
     { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (最新・推奨)', recommended: true },
     { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', recommended: false },
     { id: 'gemini-2.0-flash-001', name: 'Gemini 2.0 Flash (安定版)', recommended: false }
@@ -13,7 +20,14 @@ export const AVAILABLE_MODELS = [
 export const DEFAULT_SYSTEM_PROMPT = '簡潔に、要点重視で回答してください。日本語で回答してください。';
 
 // Default generation config
-export const DEFAULT_GENERATION_CONFIG = {
+export interface GenerationConfig {
+    temperature: number;
+    topP: number;
+    topK: number;
+    maxOutputTokens: number;
+}
+
+export const DEFAULT_GENERATION_CONFIG: GenerationConfig = {
     temperature: 0.7,
     topP: 0.95,
     topK: 40,
@@ -21,7 +35,12 @@ export const DEFAULT_GENERATION_CONFIG = {
 };
 
 // Safety settings
-export const DEFAULT_SAFETY_SETTINGS = [
+export interface SafetySetting {
+    category: string;
+    threshold: string;
+}
+
+export const DEFAULT_SAFETY_SETTINGS: SafetySetting[] = [
     {
         category: "HARM_CATEGORY_HARASSMENT",
         threshold: "BLOCK_ONLY_HIGH"
@@ -48,4 +67,6 @@ export const ERROR_MESSAGES = {
     API_ERROR: 'APIエラーが発生しました。しばらく待ってから再試行してください。',
     RATE_LIMIT: 'レート制限に達しました。しばらく待ってから再試行してください。',
     UNKNOWN_ERROR: '予期しないエラーが発生しました。'
-};
+} as const;
+
+export type ErrorMessageKey = keyof typeof ERROR_MESSAGES;

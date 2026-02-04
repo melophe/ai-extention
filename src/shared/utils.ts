@@ -2,10 +2,8 @@
 
 /**
  * Escape HTML to prevent XSS
- * @param {string} text - Raw text
- * @returns {string} - Escaped HTML
  */
-export function escapeHtml(text) {
+export function escapeHtml(text: string): string {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
@@ -13,10 +11,8 @@ export function escapeHtml(text) {
 
 /**
  * Format timestamp to locale string
- * @param {number} timestamp - Unix timestamp
- * @returns {string} - Formatted time string
  */
-export function formatTime(timestamp) {
+export function formatTime(timestamp: number): string {
     return new Date(timestamp).toLocaleTimeString('ja-JP', {
         hour: '2-digit',
         minute: '2-digit'
@@ -25,14 +21,14 @@ export function formatTime(timestamp) {
 
 /**
  * Debounce function
- * @param {Function} func - Function to debounce
- * @param {number} wait - Wait time in ms
- * @returns {Function} - Debounced function
  */
-export function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
+export function debounce<T extends (...args: unknown[]) => void>(
+    func: T,
+    wait: number
+): (...args: Parameters<T>) => void {
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    return function executedFunction(...args: Parameters<T>): void {
+        const later = (): void => {
             clearTimeout(timeout);
             func(...args);
         };
@@ -43,10 +39,8 @@ export function debounce(func, wait) {
 
 /**
  * Validate API key format
- * @param {string} apiKey - API key to validate
- * @returns {boolean} - Whether the key appears valid
  */
-export function validateApiKeyFormat(apiKey) {
+export function validateApiKeyFormat(apiKey: string | null | undefined): boolean {
     if (!apiKey || typeof apiKey !== 'string') {
         return false;
     }
@@ -57,16 +51,14 @@ export function validateApiKeyFormat(apiKey) {
 /**
  * Simple markdown to HTML converter
  * Supports: bold, italic, code blocks, inline code, links
- * @param {string} text - Markdown text
- * @returns {string} - HTML string
  */
-export function markdownToHtml(text) {
+export function markdownToHtml(text: string | null | undefined): string {
     if (!text) return '';
 
     let html = escapeHtml(text);
 
     // Code blocks (```...```)
-    html = html.replace(/```(\w*)\n?([\s\S]*?)```/g, (match, lang, code) => {
+    html = html.replace(/```(\w*)\n?([\s\S]*?)```/g, (_match, lang: string, code: string) => {
         return `<pre><code class="language-${lang}">${code.trim()}</code></pre>`;
     });
 
@@ -90,10 +82,8 @@ export function markdownToHtml(text) {
 
 /**
  * Copy text to clipboard
- * @param {string} text - Text to copy
- * @returns {Promise<boolean>} - Success status
  */
-export async function copyToClipboard(text) {
+export async function copyToClipboard(text: string): Promise<boolean> {
     try {
         await navigator.clipboard.writeText(text);
         return true;
