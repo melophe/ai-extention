@@ -6,18 +6,49 @@ import {
     ERROR_MESSAGES
 } from '../shared/constants.js';
 
+export interface ChatMessage {
+    role: 'user' | 'assistant' | 'model';
+    content: string;
+}
+
+interface GeminiPart {
+    text: string;
+}
+
+interface GeminiContent {
+    role: 'user' | 'model';
+    parts: GeminiPart[];
+}
+
+interface GeminiCandidate {
+    content?: {
+        parts?: GeminiPart[];
+    };
+    finishReason?: string;
+}
+
+interface GeminiResponse {
+    candidates?: GeminiCandidate[];
+    error?: {
+        message?: string;
+    };
+}
+
+export type OnChunkCallback = (chunk: string) => void;
+
 export class GeminiClient {
-    constructor(apiKey, model = 'gemini-1.5-flash') {
+    private apiKey: string;
+    private model: string;
+
+    constructor(apiKey: string, model: string = 'gemini-1.5-flash') {
         this.apiKey = apiKey;
         this.model = model;
     }
 
     /**
      * Send a chat message and get a response
-     * @param {Array} messages - Array of message objects with role and content
-     * @returns {Promise<string>} - AI response text
      */
-    async chat(messages) {
+    async chat(messages: ChatMessage[]): Promise<string> {
         if (!this.apiKey) {
             throw new Error(ERROR_MESSAGES.NO_API_KEY);
         }
@@ -41,7 +72,7 @@ export class GeminiClient {
                 return this.handleApiError(response);
             }
 
-            const data = await response.json();
+            const data: GeminiResponse = await response.json();
 
             // Check for blocked content
             if (data.candidates?.[0]?.finishReason === 'SAFETY') {
@@ -56,7 +87,7 @@ export class GeminiClient {
 
             return text;
         } catch (error) {
-            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            if (error instanceof TypeError && error.message.includes('fetch')) {
                 throw new Error(ERROR_MESSAGES.NETWORK_ERROR);
             }
             throw error;
@@ -64,12 +95,9 @@ export class GeminiClient {
     }
 
     /**
-     * Stream chat response (for future use)
-     * @param {Array} messages - Array of message objects
-     * @param {Function} onChunk - Callback for each chunk
-     * @returns {Promise<string>} - Full response text
+     * Stream chat response
      */
-    async streamChat(messages, onChunk) {
+    async streamChat(messages: ChatMessage[], onChunk?: OnChunkCallback): Promise<string> {
         if (!this.apiKey) {
             throw new Error(ERROR_MESSAGES.NO_API_KEY);
         }
@@ -93,7 +121,11 @@ export class GeminiClient {
                 return this.handleApiError(response);
             }
 
-            const reader = response.body.getReader();
+            const reader = response.body?.getReader();
+            if (!reader) {
+                throw new Error(ERROR_MESSAGES.API_ERROR);
+            }
+
             const decoder = new TextDecoder();
             let fullText = '';
 
@@ -107,11 +139,11 @@ export class GeminiClient {
                 for (const line of lines) {
                     if (line.startsWith('data: ')) {
                         try {
-                            const data = JSON.parse(line.slice(6));
+                            const data: GeminiResponse = JSON.parse(line.slice(6));
                             const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
                             fullText += text;
                             if (onChunk) onChunk(text);
-                        } catch (e) {
+                        } catch {
                             // Skip invalid JSON lines
                         }
                     }
@@ -120,7 +152,7 @@ export class GeminiClient {
 
             return fullText;
         } catch (error) {
-            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            if (error instanceof TypeError && error.message.includes('fetch')) {
                 throw new Error(ERROR_MESSAGES.NETWORK_ERROR);
             }
             throw error;
@@ -129,9 +161,8 @@ export class GeminiClient {
 
     /**
      * Test API connection
-     * @returns {Promise<boolean>} - Whether connection is successful
      */
-    async testConnection() {
+    async testConnection(): Promise<boolean> {
         try {
             const response = await this.chat([
                 { role: 'user', content: 'Hello, respond with just "OK".' }
@@ -145,10 +176,8 @@ export class GeminiClient {
 
     /**
      * Format messages for Gemini API
-     * @param {Array} messages - Array of {role, content} objects
-     * @returns {Array} - Formatted messages for API
      */
-    formatMessages(messages) {
+    private formatMessages(messages: ChatMessage[]): GeminiContent[] {
         return messages.map(msg => ({
             role: msg.role === 'user' ? 'user' : 'model',
             parts: [{ text: msg.content }]
@@ -157,10 +186,9 @@ export class GeminiClient {
 
     /**
      * Handle API errors
-     * @param {Response} response - Fetch response
      */
-    async handleApiError(response) {
-        let errorData;
+    private async handleApiError(response: Response): Promise<never> {
+        let errorData: GeminiResponse;
         try {
             errorData = await response.json();
         } catch {
@@ -186,17 +214,15 @@ export class GeminiClient {
 
     /**
      * Update the model
-     * @param {string} model - Model name
      */
-    setModel(model) {
+    setModel(model: string): void {
         this.model = model;
     }
 
     /**
      * Update the API key
-     * @param {string} apiKey - New API key
      */
-    setApiKey(apiKey) {
+    setApiKey(apiKey: string): void {
         this.apiKey = apiKey;
     }
 }
