@@ -1,6 +1,8 @@
 // Background script for Firefox
 // Handles sidebar behavior
 
+declare const browser: typeof chrome;
+
 // Listen for installation
 browser.runtime.onInstalled.addListener((details) => {
     if (details.reason === 'install') {
@@ -10,7 +12,7 @@ browser.runtime.onInstalled.addListener((details) => {
 });
 
 // Handle messages from sidebar
-browser.runtime.onMessage.addListener((message, sender) => {
+browser.runtime.onMessage.addListener((message, _sender) => {
     if (message.type === 'OPEN_OPTIONS') {
         browser.runtime.openOptionsPage();
         return Promise.resolve({ success: true });
@@ -20,5 +22,5 @@ browser.runtime.onMessage.addListener((message, sender) => {
 
 // Toggle sidebar when action (toolbar icon) is clicked
 browser.action.onClicked.addListener(() => {
-    browser.sidebarAction.toggle();
+    (browser as unknown as { sidebarAction: { toggle(): void } }).sidebarAction.toggle();
 });

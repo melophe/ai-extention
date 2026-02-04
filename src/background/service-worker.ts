@@ -4,7 +4,9 @@
 // Open side panel when extension icon is clicked
 chrome.action.onClicked.addListener(async (tab) => {
     try {
-        await chrome.sidePanel.open({ tabId: tab.id });
+        if (tab.id) {
+            await chrome.sidePanel.open({ tabId: tab.id });
+        }
     } catch (error) {
         console.error('Failed to open side panel:', error);
     }
@@ -23,7 +25,7 @@ chrome.runtime.onInstalled.addListener((details) => {
 });
 
 // Handle messages from side panel
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (message.type === 'OPEN_OPTIONS') {
         chrome.runtime.openOptionsPage();
         sendResponse({ success: true });
