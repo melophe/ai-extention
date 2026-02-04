@@ -2,26 +2,42 @@
 import { storage } from '../lib/storage.js';
 import { GeminiClient } from '../lib/gemini-api.js';
 import { validateApiKeyFormat } from '../shared/utils.js';
-import { AVAILABLE_MODELS } from '../shared/constants.js';
+
+declare const browser: typeof chrome | undefined;
+
+interface OptionsElements {
+    apiKeyInput: HTMLInputElement;
+    toggleVisibility: HTMLButtonElement;
+    eyeIcon: HTMLElement;
+    eyeOffIcon: HTMLElement;
+    modelSelect: HTMLSelectElement;
+    systemPromptInput: HTMLTextAreaElement;
+    saveButton: HTMLButtonElement;
+    testButton: HTMLButtonElement;
+    statusMessage: HTMLElement;
+}
+
+type StatusType = 'success' | 'error' | 'loading';
 
 class OptionsPage {
+    private elements: OptionsElements;
+    private isPasswordVisible: boolean = false;
+
     constructor() {
         this.elements = {
-            apiKeyInput: document.getElementById('api-key'),
-            toggleVisibility: document.getElementById('toggle-visibility'),
-            eyeIcon: document.getElementById('eye-icon'),
-            eyeOffIcon: document.getElementById('eye-off-icon'),
-            modelSelect: document.getElementById('model-select'),
-            systemPromptInput: document.getElementById('system-prompt'),
-            saveButton: document.getElementById('save-settings'),
-            testButton: document.getElementById('test-connection'),
-            statusMessage: document.getElementById('status-message')
+            apiKeyInput: document.getElementById('api-key') as HTMLInputElement,
+            toggleVisibility: document.getElementById('toggle-visibility') as HTMLButtonElement,
+            eyeIcon: document.getElementById('eye-icon') as HTMLElement,
+            eyeOffIcon: document.getElementById('eye-off-icon') as HTMLElement,
+            modelSelect: document.getElementById('model-select') as HTMLSelectElement,
+            systemPromptInput: document.getElementById('system-prompt') as HTMLTextAreaElement,
+            saveButton: document.getElementById('save-settings') as HTMLButtonElement,
+            testButton: document.getElementById('test-connection') as HTMLButtonElement,
+            statusMessage: document.getElementById('status-message') as HTMLElement
         };
-
-        this.isPasswordVisible = false;
     }
 
-    async init() {
+    async init(): Promise<void> {
         // Load current settings
         await this.loadSettings();
 
@@ -29,7 +45,7 @@ class OptionsPage {
         this.setupEventListeners();
     }
 
-    async loadSettings() {
+    private async loadSettings(): Promise<void> {
         try {
             const settings = await storage.getSettings();
             console.log('Options - Loaded settings:', settings);
@@ -53,7 +69,7 @@ class OptionsPage {
         }
     }
 
-    setupEventListeners() {
+    private setupEventListeners(): void {
         // Save button
         this.elements.saveButton.addEventListener('click', () => this.saveSettings());
 
@@ -64,14 +80,14 @@ class OptionsPage {
         this.elements.toggleVisibility.addEventListener('click', () => this.togglePasswordVisibility());
 
         // Save on Enter in API key field
-        this.elements.apiKeyInput.addEventListener('keydown', (e) => {
+        this.elements.apiKeyInput.addEventListener('keydown', (e: KeyboardEvent) => {
             if (e.key === 'Enter') {
                 this.saveSettings();
             }
         });
     }
 
-    togglePasswordVisibility() {
+    private togglePasswordVisibility(): void {
         this.isPasswordVisible = !this.isPasswordVisible;
 
         if (this.isPasswordVisible) {
@@ -85,7 +101,7 @@ class OptionsPage {
         }
     }
 
-    async saveSettings() {
+    private async saveSettings(): Promise<void> {
         const apiKey = this.elements.apiKeyInput.value.trim();
         const model = this.elements.modelSelect.value;
         const systemPrompt = this.elements.systemPromptInput.value.trim();
@@ -116,7 +132,7 @@ class OptionsPage {
         }
     }
 
-    async testConnection() {
+    private async testConnection(): Promise<void> {
         const apiKey = this.elements.apiKeyInput.value.trim();
 
         if (!apiKey) {
@@ -151,13 +167,14 @@ class OptionsPage {
 
         } catch (error) {
             console.error('Connection test failed:', error);
-            this.showStatus('error', error.message || '接続テストに失敗しました');
+            const errorMessage = error instanceof Error ? error.message : '接続テストに失敗しました';
+            this.showStatus('error', errorMessage);
         } finally {
             this.elements.testButton.disabled = false;
         }
     }
 
-    showStatus(type, message) {
+    private showStatus(type: StatusType, message: string): void {
         const statusEl = this.elements.statusMessage;
         statusEl.textContent = message;
         statusEl.className = `status-message ${type}`;
@@ -170,7 +187,7 @@ class OptionsPage {
         }
     }
 
-    notifySettingsUpdate() {
+    private notifySettingsUpdate(): void {
         // Try to notify other extension pages about settings update
         try {
             const browserAPI = typeof browser !== 'undefined' ? browser : chrome;

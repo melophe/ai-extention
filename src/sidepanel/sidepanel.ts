@@ -1,32 +1,49 @@
 // AI Chat Side Panel Main Script
 import { compat } from '../lib/browser-compat.js';
-import { GeminiClient } from '../lib/gemini-api.js';
+import { GeminiClient, ChatMessage } from '../lib/gemini-api.js';
 import { storage } from '../lib/storage.js';
 import { markdownToHtml, formatTime, copyToClipboard } from '../shared/utils.js';
 
-class ChatApp {
-    constructor() {
-        this.messages = [];
-        this.gemini = null;
-        this.isLoading = false;
+declare const browser: typeof chrome | undefined;
 
-        // DOM elements
+interface ChatElements {
+    messagesContainer: HTMLElement;
+    welcomeMessage: HTMLElement | null;
+    userInput: HTMLTextAreaElement;
+    sendButton: HTMLButtonElement;
+    clearButton: HTMLButtonElement;
+    settingsButton: HTMLButtonElement;
+    apiKeyWarning: HTMLElement | null;
+    goToSettings: HTMLElement | null;
+    charCount: HTMLElement;
+    modelIndicator: HTMLElement;
+    loadingOverlay: HTMLElement | null;
+}
+
+class ChatApp {
+    private messages: ChatMessage[] = [];
+    private gemini: GeminiClient | null = null;
+    private isLoading: boolean = false;
+    private systemPrompt: string = '';
+    private elements: ChatElements;
+
+    constructor() {
         this.elements = {
-            messagesContainer: document.getElementById('messages'),
+            messagesContainer: document.getElementById('messages') as HTMLElement,
             welcomeMessage: document.getElementById('welcome-message'),
-            userInput: document.getElementById('user-input'),
-            sendButton: document.getElementById('send-button'),
-            clearButton: document.getElementById('clear-chat'),
-            settingsButton: document.getElementById('open-settings'),
+            userInput: document.getElementById('user-input') as HTMLTextAreaElement,
+            sendButton: document.getElementById('send-button') as HTMLButtonElement,
+            clearButton: document.getElementById('clear-chat') as HTMLButtonElement,
+            settingsButton: document.getElementById('open-settings') as HTMLButtonElement,
             apiKeyWarning: document.getElementById('api-key-warning'),
             goToSettings: document.getElementById('go-to-settings'),
-            charCount: document.getElementById('char-count'),
-            modelIndicator: document.getElementById('model-indicator'),
+            charCount: document.getElementById('char-count') as HTMLElement,
+            modelIndicator: document.getElementById('model-indicator') as HTMLElement,
             loadingOverlay: document.getElementById('loading-overlay')
         };
     }
 
-    async init() {
+    async init(): Promise<void> {
         // Load settings and initialize
         const settings = await storage.getSettings();
 
@@ -50,13 +67,13 @@ class ChatApp {
         this.elements.userInput.focus();
     }
 
-    setupEventListeners() {
+    private setupEventListeners(): void {
         // Send button click
         this.elements.sendButton.addEventListener('click', () => this.handleSend());
 
         // Input field events
         this.elements.userInput.addEventListener('input', () => this.handleInputChange());
-        this.elements.userInput.addEventListener('keydown', (e) => this.handleKeyDown(e));
+        this.elements.userInput.addEventListener('keydown', (e: KeyboardEvent) => this.handleKeyDown(e));
 
         // Clear button
         this.elements.clearButton.addEventListener('click', () => this.clearChat());
@@ -65,7 +82,7 @@ class ChatApp {
         this.elements.settingsButton.addEventListener('click', () => this.openSettings());
 
         // Go to settings link
-        this.elements.goToSettings?.addEventListener('click', (e) => {
+        this.elements.goToSettings?.addEventListener('click', (e: Event) => {
             e.preventDefault();
             this.openSettings();
         });
@@ -73,27 +90,29 @@ class ChatApp {
         // Quick prompts
         document.querySelectorAll('.quick-prompt').forEach(button => {
             button.addEventListener('click', () => {
-                const prompt = button.dataset.prompt;
-                this.elements.userInput.value = prompt;
-                this.handleInputChange();
-                this.elements.userInput.focus();
+                const prompt = (button as HTMLElement).dataset.prompt;
+                if (prompt) {
+                    this.elements.userInput.value = prompt;
+                    this.handleInputChange();
+                    this.elements.userInput.focus();
+                }
             });
         });
 
         // Listen for storage changes (settings update)
-        compat.runtime.onMessage?.addListener?.((message) => {
+        compat.runtime.onMessage?.addListener?.((message: { type: string }) => {
             if (message.type === 'SETTINGS_UPDATED') {
                 this.reloadSettings();
             }
         });
     }
 
-    handleInputChange() {
+    private handleInputChange(): void {
         const text = this.elements.userInput.value;
         const length = text.length;
 
         // Update character count
-        this.elements.charCount.textContent = length;
+        this.elements.charCount.textContent = String(length);
 
         // Enable/disable send button
         this.elements.sendButton.disabled = length === 0 || this.isLoading;
@@ -102,13 +121,13 @@ class ChatApp {
         this.autoResizeTextarea();
     }
 
-    autoResizeTextarea() {
+    private autoResizeTextarea(): void {
         const textarea = this.elements.userInput;
         textarea.style.height = 'auto';
         textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
     }
 
-    handleKeyDown(e) {
+    private handleKeyDown(e: KeyboardEvent): void {
         // Enter to send (Shift+Enter for new line)
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -116,7 +135,7 @@ class ChatApp {
         }
     }
 
-    async handleSend() {
+    private async handleSend(): Promise<void> {
         const text = this.elements.userInput.value.trim();
 
         if (!text || this.isLoading) return;
@@ -153,11 +172,11 @@ class ChatApp {
             let fullResponse = '';
 
             // Prepare messages with system prompt if set
-            const messagesWithPrompt = this.systemPrompt
+            const messagesWithPrompt: ChatMessage[] = this.systemPrompt
                 ? [{ role: 'user', content: `[システム指示] ${this.systemPrompt}` }, { role: 'assistant', content: '了解しました。' }, ...this.messages]
                 : this.messages;
 
-            await this.gemini.streamChat(messagesWithPrompt, (chunk) => {
+            await this.gemini.streamChat(messagesWithPrompt, (chunk: string) => {
                 fullResponse += chunk;
                 this.updateStreamingMessage(messageDiv, fullResponse);
             });
@@ -169,13 +188,14 @@ class ChatApp {
         } catch (error) {
             console.error('Chat error:', error);
             messageDiv.remove();
-            this.showError(error.message);
+            const errorMessage = error instanceof Error ? error.message : 'エラーが発生しました';
+            this.showError(errorMessage);
         } finally {
             this.setLoading(false);
         }
     }
 
-    createStreamingMessage() {
+    private createStreamingMessage(): HTMLDivElement {
         const messageDiv = document.createElement('div');
         messageDiv.className = 'message assistant streaming';
 
@@ -190,19 +210,23 @@ class ChatApp {
         return messageDiv;
     }
 
-    updateStreamingMessage(messageDiv, text) {
+    private updateStreamingMessage(messageDiv: HTMLDivElement, text: string): void {
         const contentDiv = messageDiv.querySelector('.message-content');
-        // Show raw text while streaming (no markdown yet)
-        contentDiv.innerHTML = this.escapeHtml(text) + '<span class="cursor">▋</span>';
+        if (contentDiv) {
+            // Show raw text while streaming (no markdown yet)
+            contentDiv.innerHTML = this.escapeHtml(text) + '<span class="cursor">▋</span>';
+        }
     }
 
-    finalizeStreamingMessage(messageDiv, text) {
+    private finalizeStreamingMessage(messageDiv: HTMLDivElement, text: string): void {
         messageDiv.classList.remove('streaming');
         const contentDiv = messageDiv.querySelector('.message-content');
 
-        // Apply markdown formatting
-        contentDiv.innerHTML = markdownToHtml(text);
-        this.addCopyButtonsToCodeBlocks(contentDiv);
+        if (contentDiv) {
+            // Apply markdown formatting
+            contentDiv.innerHTML = markdownToHtml(text);
+            this.addCopyButtonsToCodeBlocks(contentDiv as HTMLElement);
+        }
 
         // Add timestamp
         const timeDiv = document.createElement('div');
@@ -211,13 +235,13 @@ class ChatApp {
         messageDiv.appendChild(timeDiv);
     }
 
-    escapeHtml(text) {
+    private escapeHtml(text: string): string {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML.replace(/\n/g, '<br>');
     }
 
-    addMessage(role, content) {
+    private addMessage(role: 'user' | 'assistant', content: string): void {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${role}`;
 
@@ -242,19 +266,19 @@ class ChatApp {
         this.scrollToBottom();
     }
 
-    addCopyButtonsToCodeBlocks(container) {
+    private addCopyButtonsToCodeBlocks(container: HTMLElement): void {
         const codeBlocks = container.querySelectorAll('pre');
         codeBlocks.forEach(pre => {
             const wrapper = document.createElement('div');
             wrapper.className = 'code-block-wrapper';
-            pre.parentNode.insertBefore(wrapper, pre);
+            pre.parentNode?.insertBefore(wrapper, pre);
             wrapper.appendChild(pre);
 
             const copyButton = document.createElement('button');
             copyButton.className = 'copy-code-button';
             copyButton.textContent = 'Copy';
             copyButton.addEventListener('click', async () => {
-                const code = pre.querySelector('code')?.textContent || pre.textContent;
+                const code = pre.querySelector('code')?.textContent || pre.textContent || '';
                 const success = await copyToClipboard(code);
                 copyButton.textContent = success ? 'Copied!' : 'Failed';
                 setTimeout(() => {
@@ -266,30 +290,7 @@ class ChatApp {
         });
     }
 
-    showTypingIndicator() {
-        const indicator = document.createElement('div');
-        indicator.className = 'message assistant';
-        indicator.id = 'typing-indicator';
-
-        const typingDiv = document.createElement('div');
-        typingDiv.className = 'typing-indicator';
-        typingDiv.innerHTML = `
-      <span class="typing-dot"></span>
-      <span class="typing-dot"></span>
-      <span class="typing-dot"></span>
-    `;
-
-        indicator.appendChild(typingDiv);
-        this.elements.messagesContainer.appendChild(indicator);
-        this.scrollToBottom();
-    }
-
-    hideTypingIndicator() {
-        const indicator = document.getElementById('typing-indicator');
-        indicator?.remove();
-    }
-
-    showError(message) {
+    private showError(message: string): void {
         const errorDiv = document.createElement('div');
         errorDiv.className = 'message error';
 
@@ -302,11 +303,11 @@ class ChatApp {
         this.scrollToBottom();
     }
 
-    scrollToBottom() {
+    private scrollToBottom(): void {
         this.elements.messagesContainer.scrollTop = this.elements.messagesContainer.scrollHeight;
     }
 
-    clearChat() {
+    private clearChat(): void {
         // Clear messages array
         this.messages = [];
 
@@ -321,28 +322,28 @@ class ChatApp {
         this.elements.userInput.focus();
     }
 
-    showWelcomeMessage() {
+    private showWelcomeMessage(): void {
         this.elements.welcomeMessage?.classList.remove('hidden');
     }
 
-    hideWelcomeMessage() {
+    private hideWelcomeMessage(): void {
         this.elements.welcomeMessage?.classList.add('hidden');
     }
 
-    showApiKeyWarning() {
+    private showApiKeyWarning(): void {
         this.elements.apiKeyWarning?.classList.remove('hidden');
     }
 
-    hideApiKeyWarning() {
+    private hideApiKeyWarning(): void {
         this.elements.apiKeyWarning?.classList.add('hidden');
     }
 
-    setLoading(loading) {
+    private setLoading(loading: boolean): void {
         this.isLoading = loading;
         this.elements.sendButton.disabled = loading || !this.elements.userInput.value.trim();
     }
 
-    async openSettings() {
+    private async openSettings(): Promise<void> {
         try {
             await compat.runtime.sendMessage({ type: 'OPEN_OPTIONS' });
         } catch {
@@ -355,7 +356,7 @@ class ChatApp {
         }
     }
 
-    async reloadSettings() {
+    private async reloadSettings(): Promise<void> {
         const settings = await storage.getSettings();
 
         if (settings.apiKey) {
